@@ -91,8 +91,12 @@ export class PlainMonthDay {
     }
     const fields = ES.ToTemporalMonthDayFields(this, fieldNames);
     ObjectAssign(fields, props);
+
+    options = ES.NormalizeOptionsObject(options);
+    const overflow = ES.ToTemporalOverflow(options);
+
     const Construct = ES.SpeciesConstructor(this, PlainMonthDay);
-    const result = calendar.monthDayFromFields(fields, options, Construct);
+    const result = ES.MonthDayFromFields(calendar, fields, Construct, overflow);
     if (!ES.IsTemporalMonthDay(result)) throw new TypeError('invalid result');
     return result;
   }
@@ -140,8 +144,11 @@ export class PlainMonthDay {
     });
     ObjectAssign(fields, ES.ToRecord(item, entries));
 
+    options = ES.NormalizeOptionsObject(options);
+    const overflow = ES.ToTemporalOverflow(options);
+
     const Date = GetIntrinsic('%Temporal.PlainDate%');
-    return calendar.dateFromFields(fields, { overflow: 'constrain' }, Date);
+    return ES.DateFromFields(calendar, fields, 'constrain', Date);
   }
   getFields() {
     if (!ES.IsTemporalMonthDay(this)) throw new TypeError('invalid receiver');

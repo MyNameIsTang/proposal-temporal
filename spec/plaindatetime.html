@@ -406,7 +406,7 @@
         1. Set _options_ to ? NormalizeOptionsObject(_options_).
         1. Let _overflow_ be ? ToTemporalOverflow(_options_).
         1. Let _fields_ be ? ToTemporalDateTimeFields(_datetime_, _fieldNames_).
-        1. Let _temporalDate_ be <mark>TODO: create via calendar.dateFromFields</mark>.
+        1. Let _temporalDate_ be ? DateFromFields(_calendar_, _fields_, _overflow_, %Temporal.Date%).
         1. Let _year_ be _temporalDate_.[[ISOYear]].
         1. Let _month_ be _temporalDate_.[[ISOMonth]].
         1. Let _day_ be _temporalDate_.[[ISODay]].
@@ -676,10 +676,9 @@
         1. Let _dateTime_ be the *this* value.
         1. Perform ? RequireInternalSlot(_dateTime_, [[InitializedTemporalDateTime]]).
         1. Let _calendar_ be _dateTime_.[[Calendar]].
-        1. Let _fieldNames_ be ? CalendarFields(_calendar_, « *"day"*, *"month"*, *"year"* »).
-        1. Let _fields_ be ? ToTemporalDateFields(_dateTime_, _fieldNames_).
-        1. <mark>Create via calendar.yearMonthFromFields.</mark>
-          Return ? CreateTemporalYearMonth(_dateTime_.[[ISOYear]], _dateTime_.[[ISOMonth]]).
+        1. Let _fieldNames_ be ? CalendarFields(_calendar_, « *"month"*, *"year"* »).
+        1. Let _fields_ be ? ToTemporalYearMonthFields(_dateTime_, _fieldNames_).
+        1. Return ? YearMonthFromFields(_calendar_, _fields_, *"constrain"*, %Temporal.YearMonth%).
       </emu-alg>
     </emu-clause>
 
@@ -692,10 +691,9 @@
         1. Let _dateTime_ be the *this* value.
         1. Perform ? RequireInternalSlot(_dateTime_, [[InitializedTemporalDateTime]]).
         1. Let _calendar_ be _dateTime_.[[Calendar]].
-        1. Let _fieldNames_ be ? CalendarFields(_calendar_, « *"day"*, *"month"*, *"year"* »).
-        1. Let _fields_ be ? ToTemporalDateFields(_dateTime_, _fieldNames_).
-        1. <mark>Create via calendar.monthDayFromFields.</mark>
-          Return ? CreateTemporalMonthDay(_dateTime_.[[ISOMonth]], _dateTime_.[[ISODay]]).
+        1. Let _fieldNames_ be ? CalendarFields(_calendar_, « *"day"*, *"month"* »).
+        1. Let _fields_ be ? ToTemporalMonthDayFields(_dateTime_, _fieldNames_).
+        1. Return ? MonthDayFromFields(_calendar_, _fields_, *"constrain"*, %Temporal.MonthDay%).
       </emu-alg>
     </emu-clause>
 
