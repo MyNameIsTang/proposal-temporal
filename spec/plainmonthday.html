@@ -251,8 +251,7 @@
             1. Throw a *TypeError* exception.
           1. Let _value_ be ? ToInteger(_value_).
           1. Perform ! CreateDataPropertyOrThrow(_fields_, _property_, _value_).
-        1. <mark>TODO: create via calendar.dateFromFields.</mark>
-          Return ? CreateTemporalDate(_date_.[[Year]], _date_.[[Month]], _date_.[[Day]]).
+        1. Return ? DateFromFields(_monthDayFields_.[[Calendar]], _fields_, *"reject"*, %Temporal.Date%).
       </emu-alg>
     </emu-clause>
 
