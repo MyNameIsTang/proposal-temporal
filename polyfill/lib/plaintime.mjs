@@ -121,6 +121,7 @@ export class PlainTime {
 
   with(temporalTimeLike, options = undefined) {
     if (!ES.IsTemporalTime(this)) throw new TypeError('invalid receiver');
+
     if (ES.Type(temporalTimeLike) !== 'Object') {
       throw new TypeError('invalid argument');
     }
@@ -131,10 +132,6 @@ export class PlainTime {
       throw new TypeError('with() does not support a timeZone property');
     }
 
-    options = ES.NormalizeOptionsObject(options);
-    const overflow = ES.ToTemporalOverflow(options);
-
-    // TODO: defer to calendar
     const props = ES.ToPartialRecord(temporalTimeLike, [
       'hour',
       'microsecond',
@@ -146,6 +143,10 @@ export class PlainTime {
     if (!props) {
       throw new TypeError('invalid time-like');
     }
+
+    options = ES.NormalizeOptionsObject(options);
+    const overflow = ES.ToTemporalOverflow(options);
+
     let {
       hour = GetSlot(this, ISO_HOUR),
       minute = GetSlot(this, ISO_MINUTE),
@@ -164,24 +165,29 @@ export class PlainTime {
       overflow
     ));
     const Construct = ES.SpeciesConstructor(this, PlainTime);
+    // TODO: defer to calendar
     const result = new Construct(hour, minute, second, millisecond, microsecond, nanosecond);
     if (!ES.IsTemporalTime(result)) throw new TypeError('invalid result');
     return result;
   }
   add(temporalDurationLike, options = undefined) {
     if (!ES.IsTemporalTime(this)) throw new TypeError('invalid receiver');
-    const duration = ES.ToLimitedTemporalDuration(temporalDurationLike);
-    const { years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds } = duration;
+
+    const { years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds } = ES.ToLimitedTemporalDuration(temporalDurationLike);
     ES.RejectDurationSign(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds);
+
+    options = ES.NormalizeOptionsObject(options);
+    const overflow = ES.ToTemporalOverflow(options);
+
     const Construct = ES.SpeciesConstructor(this, PlainTime);
-    const result = GetSlot(this, CALENDAR).timeAdd(this, duration, options, Construct);
+    const result = GetSlot(this, CALENDAR).timeAdd(this, duration, { overflow }, Construct); // XXX aop
     if (!ES.IsTemporalTime(result)) throw new TypeError('invalid result');
     return result;
   }
   subtract(temporalDurationLike, options = undefined) {
     if (!ES.IsTemporalTime(this)) throw new TypeError('invalid receiver');
     let duration = ES.ToLimitedTemporalDuration(temporalDurationLike);
-    duration = {
+    duration = { // XXX for real?
       years: -duration.years,
       months: -duration.months,
       weeks: -duration.weeks,
@@ -195,8 +201,12 @@ export class PlainTime {
     };
     const { years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds } = duration;
     ES.RejectDurationSign(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds);
+
+    options = ES.NormalizeOptionsObject(options);
+    const overflow = ES.ToTemporalOverflow(options);
+
     const Construct = ES.SpeciesConstructor(this, PlainTime);
-    const result = GetSlot(this, CALENDAR).timeAdd(this, duration, options, Construct);
+    const result = GetSlot(this, CALENDAR).timeAdd(this, duration, options, Construct); // XXX aop
     if (!ES.IsTemporalTime(result)) throw new TypeError('invalid result');
     return result;
   }
@@ -258,6 +268,7 @@ export class PlainTime {
   since(other, options = undefined) {
     if (!ES.IsTemporalTime(this)) throw new TypeError('invalid receiver');
     other = ES.ToTemporalTime(other, PlainTime);
+
     const calendar = GetSlot(this, CALENDAR);
     const otherCalendar = GetSlot(other, CALENDAR);
     const calendarId = ES.CalendarToString(calendar);
@@ -456,8 +467,8 @@ export class PlainTime {
     return new ZonedDateTime(GetSlot(instant, EPOCHNANOSECONDS), timeZone, calendar);
   }
   getFields() {
+    if (!ES.IsTemporalTime(this)) throw new TypeError('invalid receiver');
     const fields = ES.ToTemporalTimeRecord(this);
-    if (!fields) throw new TypeError('invalid receiver');
     fields.calendar = GetSlot(this, CALENDAR);
     return fields;
   }

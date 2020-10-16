@@ -4,6 +4,7 @@ import { GetISO8601Calendar } from './calendar.mjs';
 import { ES } from './ecmascript.mjs';
 import { DateTimeFormat } from './intl.mjs';
 import { GetIntrinsic, MakeIntrinsicClass } from './intrinsicclass.mjs';
+
 import {
   ISO_YEAR,
   ISO_MONTH,
@@ -17,6 +18,10 @@ import {
   DATE_BRAND,
   CALENDAR,
   EPOCHNANOSECONDS,
+  YEARS,
+  MONTHS,
+  WEEKS,
+  DAYS,
   CreateSlots,
   GetSlot,
   SetSlot
@@ -134,8 +139,7 @@ export class PlainDate {
   }
   withCalendar(calendar) {
     if (!ES.IsTemporalDate(this)) throw new TypeError('invalid receiver');
-    const TemporalCalendar = GetIntrinsic('%Temporal.Calendar%');
-    calendar = TemporalCalendar.from(calendar);
+    calendar = ES.ToTemporalCalendar(calendar);
     const Construct = ES.SpeciesConstructor(this, PlainDate);
     const result = new Construct(GetSlot(this, ISO_YEAR), GetSlot(this, ISO_MONTH), GetSlot(this, ISO_DAY), calendar);
     if (!ES.IsTemporalDate(result)) throw new TypeError('invalid result');
@@ -185,10 +189,23 @@ export class PlainDate {
     const roundingMode = ES.ToTemporalRoundingMode(options, 'trunc');
     const roundingIncrement = ES.ToTemporalRoundingIncrement(options, undefined, false);
 
-    const result = calendar.dateUntil(this, other, { largestUnit });
-    if (smallestUnit === 'days' && roundingIncrement === 1) return result;
+    const result = ES.DateUntil(calendar, this, other, largestUnit);
+    const Duration = GetIntrinsic('%Temporal.Duration%');
+    if (smallestUnit === 'days' && roundingIncrement === 1) {
+      return new Duration(
+        GetSlot(result, YEARS),
+        GetSlot(result, MONTHS),
+        GetSlot(result, WEEKS),
+        GetSlot(result, DAYS),
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      );
+    }
 
-    let { years, months, weeks, days } = result;
     const TemporalDateTime = GetIntrinsic('%Temporal.PlainDateTime%');
     const relativeTo = new TemporalDateTime(
       GetSlot(this, ISO_YEAR),
@@ -200,13 +217,13 @@ export class PlainDate {
       0,
       0,
       0,
-      GetSlot(this, CALENDAR)
+      calendar
     );
-    ({ years, months, weeks, days } = ES.RoundDuration(
-      years,
-      months,
-      weeks,
-      days,
+    const { years, months, weeks, days } = ES.RoundDuration(
+      GetSlot(result, YEARS),
+      GetSlot(result, MONTHS),
+      GetSlot(result, WEEKS),
+      GetSlot(result, DAYS),
       0,
       0,
       0,
@@ -217,9 +234,8 @@ export class PlainDate {
       smallestUnit,
       roundingMode,
       relativeTo
-    ));
+    );
 
-    const Duration = GetIntrinsic('%Temporal.Duration%');
     return new Duration(years, months, weeks, days, 0, 0, 0, 0, 0, 0);
   }
   since(other, options = undefined) {
